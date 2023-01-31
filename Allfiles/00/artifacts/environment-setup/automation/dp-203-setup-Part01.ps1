@@ -129,7 +129,7 @@ $max_index = $locations.Count - 1
 
 if ($max_index -eq 0)
 {
-Write-Output "FAILED TO FIND REGION WITH REQUIRED RESOURCES IN ANY OF THE FOLLOWING REGIONS"
+Write-Output "FAILED TO FIND REGION WITH REQUIRED PROVIDERS IN ANY OF THE FOLLOWING REGIONS"
 $preferred_list
 exit #script
 }
@@ -160,6 +160,14 @@ while ($success -ne 1){
     }
 }
 Remove-AzSqlServer -ResourceGroupName $resourceGroupName -ServerName $testServer | Out-Null
+
+
+if ($random_location -eq $null)
+{
+Write-Output "FAILED TO FIND REGION WITH AZURE SQL AVAILABIILITY IN ANY OF THE FOLLOWING REGIONS"
+$preferred_list
+exit #script
+}
 
 Write-Host "Selected region: $random_location"
 
