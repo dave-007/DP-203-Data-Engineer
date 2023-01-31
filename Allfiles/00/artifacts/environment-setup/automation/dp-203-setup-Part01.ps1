@@ -1,4 +1,5 @@
-﻿# Import modules
+# DC: Customized to use US regions, exit script if no suitable region found
+# Import modules
 Import-Module Az.CosmosDB
 Import-Module "..\solliance-synapse-automation"
 
@@ -107,7 +108,10 @@ $resourceGroupName = "data-engineering-synapse-$suffix"
 # (required to balance resource capacity across regions)
 Write-Host "Selecting a region for deployment..."
 
-$preferred_list = "australiaeast","northeurope", "southeastasia","uksouth","westeurope","westus","westus2"
+# original regions
+# "australiaeast","northeurope", "southeastasia","uksouth","westeurope","westus","westus2"
+# try us regions only
+$preferred_list = "centralus","eastus","westus","northcentralus","southcentralus","westcentralus"
 $locations = Get-AzLocation | Where-Object {
     $_.Providers -contains "Microsoft.Synapse" -and
     $_.Providers -contains "Microsoft.Databricks" -and
@@ -121,6 +125,15 @@ $locations = Get-AzLocation | Where-Object {
     $_.Location -in $preferred_list
 }
 $max_index = $locations.Count - 1
+
+
+if ($max_index -eq 0)
+{
+Write-Output "FAILED TO FIND REGION WITH REQUIRED RESOURCES IN ANY OF THE FOLLOWING REGIONS"
+$preferred_list
+exit #script
+}
+
 $rand = (0..$max_index) | Get-Random
 $random_location = $locations.Get($rand).Location
 
@@ -149,6 +162,8 @@ while ($success -ne 1){
 Remove-AzSqlServer -ResourceGroupName $resourceGroupName -ServerName $testServer | Out-Null
 
 Write-Host "Selected region: $random_location"
+
+
 
 # Use ARM template to deploy resources
 Write-Host "Creating Azure resources. This may take some time..."
